@@ -679,9 +679,9 @@ def compare_strength_two(sorted_hand1, sorted_hand2):
     pair_val1 = get_pair_val(sorted_hand1)
     pair_val2 = get_pair_val(sorted_hand2)
 
-    if sorted_hand1[pair_val1] > sorted_hand2[pair_val2]:
+    if pair_val1 > pair_val2:
         return HAND1_WIN
-    elif sorted_hand1[pair_val1] < sorted_hand2[pair_val2]:
+    elif pair_val1 < pair_val2:
         return HAND2_WIN
 
     # We refer to the three kickers left here to determine the winner

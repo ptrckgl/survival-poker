@@ -1,6 +1,6 @@
-import SurvivalPokerEngine as engine
+import engine as engine
 import time  # To allow the program to 'sleep' for a specific amount of time
-import os  # Used for clearing the screen in the command prompt (cls)
+import os  # Used to clear screen
 import random
 
 
@@ -68,7 +68,7 @@ def main(*args):
 
         input("Press enter to continue! ")
 
-        os.system('cls')  # works for windows -> Clears screen on the command prompt
+        os.system('cls' if os.name == 'nt' else 'clear')  # Clears screen
 
     print("Unfortunately, you have ran out of lives!")
     print("Your final score was:", score)

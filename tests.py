@@ -1,4 +1,4 @@
-import SurvivalPokerMain as main
+import main as main
 import pytest
 
 # Order of arguments passed
