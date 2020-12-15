@@ -1,10 +1,10 @@
 import main as main
 import pytest
 
-# Order of arguments passed
-# args[0] = hand_amount
-# args[1] = hands_array
-# args[2] = ftr
+# Commands to run
+# python3 -m pytest tests.py
+# coverage run -m pytest tests.py
+# coverage report
 
 # ♦ ♥ ♠ ♣
 
@@ -31,7 +31,39 @@ def test_high_card_split_pot():
     assert main.testing_function(hand_amount, hands_array, ftr) == [1, 3]
 
 
+def test_high_cards_on_board():
+    """Testing the board containing all five high cards."""
+    hand_amount = 2
+    hands_array = ['4', '♣', '2', '♣', '6', '♠', '5', '♠']
+    ftr = ['K', '♦', 'Q', '♦', 'J', '♦', '8', '♦', 'A', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 2]
+
+
 # --- Strength 2 Tests: Pair ---
+
+
+def test_pocket_aces():
+    """Testing a simple pocket aces win."""
+    hand_amount = 3
+    hands_array = ['A', '♣', 'A', '♠', '3', '♥', '5', '♠', '6', '♥', 'T', '♥']
+    ftr = ['K', '♦', 'Q', '♦', 'J', '♦', '8', '♦', '7', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1]
+
+
+def test_pair_on_board_high_card():
+    """Testing pair on the board with a high card win."""
+    hand_amount = 3
+    hands_array = ['4', '♣', '5', '♥', '3', '♥', '5', '♠', '6', '♥', 'T', '♥']
+    ftr = ['K', '♦', 'K', '♣', 'J', '♦', '8', '♦', '7', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [3]
+
+
+def test_split_pair():
+    """Testing two pocket pairs split pot."""
+    hand_amount = 2
+    hands_array = ['4', '♣', '4', '♥', '4', '♦', '4', '♠']
+    ftr = ['K', '♦', '2', '♣', 'J', '♦', '8', '♦', '7', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 2]
 
 
 # --- Strength 3 Tests: Two Pair ---
