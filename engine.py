@@ -934,27 +934,3 @@ def ensure_highest_sf_value(sorted_hand, sorted_suits, highest_value, flush_suit
             highest_value -= 1
 
     return highest_value
-
-
-def print_winning_strength(strength):
-    """For printing purposes, printing the winning strength."""
-    if strength == 1:
-        return("High Card")
-    elif strength == 2:
-        return("Pair")
-    elif strength == 3:
-        return("Two Pair")
-    elif strength == 4:
-        return("Three Of A Kind")
-    elif strength == 5:
-        return("Straight")
-    elif strength == 6:
-        return("Flush")
-    elif strength == 7:
-        return("Full House")
-    elif strength == 8:
-        return("Four Of A Kind")
-    elif strength == 9:
-        return("Straight Flush")
-    else:
-        return("Royal Flush")

@@ -20,7 +20,7 @@ def test_high_card_win():
     hand_amount = 3
     hands_array = ['4', '♣', '2', '♣', '9', '♠', '5', '♦', '2', '♠', 'J', '♦']
     ftr = ['3', '♦', 'T', '♦', '7', '♥', 'K', '♦', '8', '♠']
-    assert main.main(hand_amount, hands_array, ftr) == [3]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [3]
 
 
 def test_high_card_split_pot():
@@ -28,7 +28,7 @@ def test_high_card_split_pot():
     hand_amount = 3
     hands_array = ['4', '♣', 'J', '♣', '9', '♠', '5', '♦', '2', '♠', 'J', '♦']
     ftr = ['3', '♦', 'T', '♦', '7', '♥', 'K', '♦', '8', '♠']
-    assert main.main(hand_amount, hands_array, ftr) == [1, 3]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 3]
 
 
 # --- Strength 2 Tests: Pair ---
@@ -45,7 +45,7 @@ def test_three_of_a_kind():
     hand_amount = 3
     hands_array = ['A', '♦', 'A', '♥', 'K', '♦', 'K', '♥', 'Q', '♦', 'Q', '♥']
     ftr = ['A', '♣', '3', '♣', '5', '♠', '7', '♣', '9', '♣']
-    assert main.main(hand_amount, hands_array, ftr) == [1]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1]
 
 
 # --- Strength 5 Tests: Straight ---
@@ -56,7 +56,7 @@ def test_split_straight():
     hand_amount = 3
     hands_array = ['J', '♣', 'Q', '♣', '9', '♠', '5', '♦', '2', '♠', 'J', '♦']
     ftr = ['6', '♦', 'T', '♦', 'Q', '♥', 'K', '♦', 'A', '♠']
-    assert main.main(hand_amount, hands_array, ftr) == [1, 3]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 3]
 
 
 def test_ace_low_straight():
@@ -64,7 +64,7 @@ def test_ace_low_straight():
     hand_amount = 3
     hands_array = ['A', '♣', '2', '♣', '9', '♠', '5', '♦', '2', '♠', 'J', '♦']
     ftr = ['3', '♦', '4', '♦', '5', '♥', 'K', '♦', '8', '♠']
-    assert main.main(hand_amount, hands_array, ftr) == [1]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1]
 
 
 # --- Strength 6 Tests: Flush ---
@@ -75,7 +75,7 @@ def test_straight_flush():
     hand_amount = 3
     hands_array = ['4', '♣', '2', '♣', '9', '♦', '5', '♦', '2', '♠', 'J', '♦']
     ftr = ['6', '♦', '7', '♥', '7', '♦', 'K', '♦', '8', '♦']
-    assert main.main(hand_amount, hands_array, ftr) == [2]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [2]
 
 
 # --- Strength 7 Tests: Full House ---
@@ -95,4 +95,4 @@ def test_royal_flush_against_straight_flush():
     hand_amount = 3
     hands_array = ['4', '♣', '2', '♣', 'K', '♦', 'A', '♦', '8', '♦', '9', '♦']
     ftr = ['6', '♣', '7', '♥', 'T', '♦', 'J', '♦', 'Q', '♦']
-    assert main.main(hand_amount, hands_array, ftr) == [2]
+    assert main.testing_function(hand_amount, hands_array, ftr) == [2]

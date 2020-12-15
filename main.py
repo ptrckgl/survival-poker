@@ -4,76 +4,127 @@ import os  # Used to clear screen
 import random
 
 
-def main(*args):
-    '''
-    Detect which level of 'strength' each hand is when comparing to flop, turn, river.
-    If clear winner, no further calculation needed. If not, compare the strengths of the hands.
-
-    The 10 strength values of poker hands:
-    1. High Card
-    2. Pair
-    3. Two Pair
-    4. Three Of A Kind
-    5. Straight
-    6. Flush
-    7. Full House
-    8. Four Of A Kind
-    9. Straight Flush
-    10. Royal Flush
-    '''
-
-    cards = []  # Contains the 52 cards
-    generate_cards(cards)  # Generates the 52 cards
-
-    score = 0  # Rounds 'survived'
-    lives = 5  # Beginning lives
-
-    if not args:  # If not testing
-        hand_amount = get_valid_hand_amount()
+def main():
+    '''The main function for the survival poker program.'''
+    # Preparing for the game
+    score = 0
+    lives = 5
+    cards = generate_cards()
+    hand_amount = get_valid_hand_amount()
 
     while lives > 0:
-        if args:  # When testing
-            if len(args) != 3:
-                print("Incorrect number of arguments passed for testing.")
-                quit()
-            hand_amount = args[0]
-            hands_array = args[1]
-            ftr = args[2]
-        else:  # When not testing
-            # Generate new hands and ftr for each game loop - hence re-initialise the arrays
-            hands_array = []
-            cards_used = []
-            ftr = []
-            generate_hands(hands_array, hand_amount, cards_used, cards)
-            generate_ftr(ftr, cards_used, cards)
+        # Generate new hands and ftr (flop, turn, river)
+        cards_used = []
+        hands_array = generate_hands(cards_used, cards, hand_amount)
+        ftr = generate_ftr(cards_used, cards)
 
-        strengths = []
-        get_strengths(strengths, hands_array, ftr, hand_amount)
+        # Find the strengths of each hand and then determine the winner of the round
+        strengths = get_strengths(hands_array, ftr, hand_amount)
+        winner = determine_winner(hands_array, ftr, strengths)
 
-        winner = []
-        determine_winner(hands_array, strengths, ftr, winner)
-
-        if args:  # When testing
-            result = get_winning_hands(winner)
-            return result[0]  # contains winning_hands
-        else:  # When not testing
-            print_interface(lives, score, hand_amount, hands_array)
-            print()
-            hand_choice = get_valid_hand_choice(hand_amount)
-            print()
-            print_ftr(ftr)
-            print()
-            score, lives = print_winner(winner, hand_choice, score, lives, strengths)
-            print()
+        # Print the interface, get users choice of hand to win, update score and lives
+        print_interface(lives, score, hand_amount, hands_array)
+        hand_choice = get_valid_hand_choice(hand_amount)
+        print_ftr(ftr)
+        score, lives = print_winner(winner, hand_choice, score, lives, strengths)
 
         input("Press enter to continue! ")
 
-        os.system('cls' if os.name == 'nt' else 'clear')  # Clears screen
+        # Clear screen
+        os.system('cls' if os.name == 'nt' else 'clear')
 
     print("Unfortunately, you have ran out of lives!")
     print("Your final score was:", score)
 
     input("")
+
+
+def testing_function(hand_amount, hands_array, ftr):
+    """The testing function called when the tests.py file is ran with pytest."""
+    strengths = get_strengths(hands_array, ftr, hand_amount)
+    winner = determine_winner(hands_array, ftr, strengths)
+    return get_winning_hands(winner)
+
+
+def generate_cards():
+    """Generate the 52 Cards and store it in the cards array passed in."""
+    cards = []
+    suit = {1: '♦', 2: '♥', 3: '♠', 4: '♣'}
+
+    for count in range(1, 5):
+        # Aces:
+        cards.append('A')
+        cards.append(suit[count])
+
+        # Numbers 2-9:
+        for number in range(2, 10):
+            cards.append(chr(48 + number))
+            cards.append(suit[count])
+
+        # Ten & Court Cards:
+        cards.append('T')
+        cards.append(suit[count])
+        cards.append('J')
+        cards.append(suit[count])
+        cards.append('Q')
+        cards.append(suit[count])
+        cards.append('K')
+        cards.append(suit[count])
+
+    return cards
+
+
+def generate_hands(cards_used, cards, hand_amount):
+    """Generate the hands, the amount determined by the value of 'hand_amount' parameter."""
+    hands_array = []
+    for i in range(0, hand_amount):
+        x = 0
+        while x < 2:
+            card = (random.randint(0, 51) * 2)
+
+            # is_duplicate returns 0 if no duplicates found.
+            if is_duplicate(cards_used, cards[card], cards[card + 1]) == 0:
+                hands_array.append(cards[card])
+                hands_array.append(cards[card + 1])
+                cards_used.append(cards[card])
+                cards_used.append(cards[card + 1])
+                x += 1
+
+    return hands_array
+
+
+def generate_ftr(cards_used, cards):
+    """Generate the flop, turn and river."""
+    ftr = []
+    x = 0
+    while x < 5:  # Always 5 cards in the flop, turn and river
+        card = (random.randint(0, 51) * 2)
+        if is_duplicate(cards_used, cards[card], cards[card + 1]) == 0:
+            ftr.append(cards[card])
+            ftr.append(cards[card + 1])
+            cards_used.append(cards[card])
+            cards_used.append(cards[card + 1])
+            x += 1
+
+    return ftr
+
+
+def is_duplicate(array, newValue, newSuit):
+    """Testing for duplicate cards in the same array."""
+    i = 0
+    length = len(array)
+    dup = 0  # 0 for false, 1 for true
+
+    if length <= 2:
+        return dup  # First card cannot be a duplicate
+
+    while i < length:
+        if array[i] == newValue and array[i + 1] == newSuit:
+            dup = 1  # Duplicate card
+            break
+        i += 2
+
+    return dup
 
 
 def get_valid_hand_amount():
@@ -86,7 +137,7 @@ def get_valid_hand_amount():
             print("Please choose a valid hand amount.")
             hand_amount = 0
         else:
-            ord_hand_amount = ord(hand_amount)  # ord translate character into unicode value.
+            ord_hand_amount = ord(hand_amount)  # 'ord' translates character into unicode value.
             # unicode value of 48 is the integer 0.
             if ord_hand_amount < 49 or ord_hand_amount > 57:
                 print("Please choose a valid hand amount.")
@@ -109,118 +160,13 @@ def get_valid_hand_choice(hand_amount):
                 print("Please make a valid hand choice.")
                 hand_choice = 0
 
+    print()  # To keep the interface neat
     return int(hand_choice)
 
 
-def generate_cards(cards):
-    """Generate the 52 Cards."""
-    suit = 1  # Diamonds = 1, Hearts = 2, Spades = 3, Clubs = 4
-    number = 2
-
-    while suit <= 4:
-        # Aces:
-        cards.append('A')
-        if suit == 1:
-            cards.append('♦')
-        elif suit == 2:
-            cards.append('♥')
-        elif suit == 3:
-            cards.append('♠')
-        else:
-            cards.append('♣')
-
-        # Numbers 2-9:
-        while number <= 9:
-            cards.append(chr(48 + number))
-            if suit == 1:
-                cards.append('♦')
-            elif suit == 2:
-                cards.append('♥')
-            elif suit == 3:
-                cards.append('♠')
-            else:
-                cards.append('♣')
-            number += 1
-
-        # Court Cards & Ten:
-        if suit == 1:
-            cards.append('T')
-            cards.append('♦')
-            cards.append('J')
-            cards.append('♦')
-            cards.append('Q')
-            cards.append('♦')
-            cards.append('K')
-            cards.append('♦')
-        elif suit == 2:
-            cards.append('T')
-            cards.append('♥')
-            cards.append('J')
-            cards.append('♥')
-            cards.append('Q')
-            cards.append('♥')
-            cards.append('K')
-            cards.append('♥')
-        elif suit == 3:
-            cards.append('T')
-            cards.append('♠')
-            cards.append('J')
-            cards.append('♠')
-            cards.append('Q')
-            cards.append('♠')
-            cards.append('K')
-            cards.append('♠')
-        else:
-            cards.append('T')
-            cards.append('♣')
-            cards.append('J')
-            cards.append('♣')
-            cards.append('Q')
-            cards.append('♣')
-            cards.append('K')
-            cards.append('♣')
-
-        suit += 1
-        number = 2
-
-    return cards
-
-
-def generate_hands(hands_array, hand_amount, cards_used, cards):
-    """Generate the hands, the amount determined by the value of 'hand_amount' parameter."""
-    i = 1  # Hands starts at 1.
-
-    while i <= hand_amount:
-        x = 0
-        while x < 2:
-            card = (random.randint(0, 51) * 2)
-
-            # is_duplicate returns 0 if no duplicates found.
-            if is_duplicate(cards_used, cards[card], cards[card + 1]) == 0:
-                hands_array.append(cards[card])
-                hands_array.append(cards[card + 1])
-                cards_used.append(cards[card])
-                cards_used.append(cards[card + 1])
-                x += 1
-        i += 1
-
-
-def generate_ftr(ftr, cards_used, cards):
-    """Generate the flop, turn and river."""
-    x = 0
-
-    while x < 5:  # Always 5 cards in the flop, turn and river
-        card = (random.randint(0, 51) * 2)
-        if is_duplicate(cards_used, cards[card], cards[card + 1]) == 0:
-            ftr.append(cards[card])
-            ftr.append(cards[card + 1])
-            cards_used.append(cards[card])
-            cards_used.append(cards[card + 1])
-            x += 1
-
-
-def get_strengths(strengths, hands_array, ftr, hand_amount):
+def get_strengths(hands_array, ftr, hand_amount):
     """Obtain the strength values of all the hands."""
+    strengths = []
     i = 0
     while i < hand_amount:
         start_index = 4 * i  # How far we're going into the hands_array array.
@@ -229,27 +175,108 @@ def get_strengths(strengths, hands_array, ftr, hand_amount):
         strengths.append(engine.overall_strength(hand, ftr))
         i += 1
 
-
-def is_duplicate(array, newValue, newSuit):
-    """Testing for duplicate cards in the same array."""
-    i = 0
-    length = len(array)
-    dup = 0  # 0 for false, 1 for true
-
-    if length <= 2:
-        return dup  # First card cannot be a duplicate
-
-    while i < length:
-        if array[i] == newValue and array[i + 1] == newSuit:
-            dup = 1  # Duplicate card
-            break
-        i += 2
-
-    return dup
+    return strengths
 
 
-def determine_winner(hands_array, strengths, ftr, winner):
+def get_winning_hands(winner):
+    """Calculates the winning hands array."""
+    # 'winner' array contains either 1 or 0. If winner[i] = 1, then hand i + 1 is a winner.
+    winning_hands = [i + 1 for i in range(len(winner)) if winner[i] == 1]
+    return winning_hands
+
+
+def get_winning_strength(strength):
+    """For printing purposes, returning the winning strength."""
+    strengths = {
+        1: "High Card",
+        2: "Pair",
+        3: "Two Pair",
+        4: "Three Of A Kind",
+        5: "Straight",
+        6: "Flush",
+        7: "Full House",
+        8: "Four Of A Kind",
+        9: "Straight Flush",
+        10: "Royal Flush"
+    }
+    return strengths[strength]
+
+
+def print_interface(lives, score, hand_amount, hands_array):
+    """Prints the game interface, such as the rules, hands and ftr."""
+    print("------------------ Welcome to Survival Poker ------------------")
+    print("• The aim of the game is to choose a hand and hope it wins!")
+    print("• You get 5 lives.")
+    print("• If your hand loses, you lose a life.")
+    print("• If there is a split pot, you don't lose a life or gain any score.")
+    print("• If your hand wins, your score increases by one.")
+    print(f"• To choose a hand, type a number between 1 and {hand_amount}.")
+    print("\n--- Scoreboard ---")
+    print(f"Lives: {lives}")
+    print(f"Score: {score}\n")
+
+    # Print 'Hand' and the hand number, seperated by a tab (4 spaces)
+    for i in range(1, hand_amount + 1):
+        print(f"Hand{i}    ", end="") if i != hand_amount else print(f"Hand{i}")
+
+    # Print the actual values of the hands directly below it's hand 'title'
+    index = 0
+    for i in range(1, hand_amount + 1):
+        print(f"{hands_array[index]}{hands_array[index + 1]}|"
+              f"{hands_array[index + 2]}{hands_array[index + 3]}", end="")
+        print("    ", end="") if i != hand_amount else print()
+        index += 4
+
+    print()  # To keep the interface neat
+
+
+def print_ftr(ftr):
+    """Prints the flop, turn and river."""
+    print("Dealer is getting ready...\n")
+
+    time.sleep(2)
+    print(f"{ftr[0]}{ftr[1]} {ftr[2]}{ftr[3]} {ftr[4]}{ftr[5]} ", end="")
+    time.sleep(2)
+    print(f"{ftr[6]}{ftr[7]} ", end="")
+    time.sleep(2)
+    print(f"{ftr[8]}{ftr[9]}\n")
+    time.sleep(2)
+
+
+def print_winner(winner, hand_choice, score, lives, strengths):
+    """Prints the winner or split winners based of values within the winner array."""
+    winning_hands = get_winning_hands(winner)
+    highest_strength_val = max(strengths)
+    winning_reason = get_winning_strength(highest_strength_val)
+
+    if len(winning_hands) == 1:
+        print(f"The Winner is Hand {winning_hands[0]}, with a {winning_reason}.")
+        if hand_choice in winning_hands:
+            print("Congratulations, you chose the correct hand!")
+            score += 1
+        else:
+            print("Unfortunately, you did not choose the correct hand.")
+            lives -= 1
+    else:
+        print("There was a Split Pot between ", end="")
+        for hand in winning_hands:
+            print(f"{hand}, ", end="")
+        print(f"with a {winning_reason}.")
+
+        if hand_choice in winning_hands:
+            print("You chose one of these hands. No change occurs.")
+        else:
+            print("Unfortunately, you did not choose one of the correct hands.")
+            lives -= 1
+
+    print()  # For neat interface purposes
+
+    return (score, lives)
+
+
+def determine_winner(hands_array, ftr, strengths):
     """Based off the strength values of the cards, determine the winner."""
+    winner = []
     total_hands = len(strengths)  # Alternative to the hand_amount variable
     highest_strength_val = max(strengths)
 
@@ -270,103 +297,7 @@ def determine_winner(hands_array, strengths, ftr, winner):
         winner = engine.compare_strengths_main(winner, hands_to_compare, ftr,
                                                highest_strength_val, total_hands)
 
-
-def print_interface(lives, score, hand_amount, hands_array):
-    """Prints the game interface, such as the rules, hands and ftr."""
-    print("------------------ Welcome to Survival Poker ------------------")
-    print("• The aim of the game is to choose a hand and hope it wins!")
-    print("• You get 5 lives.")
-    print("• If your hand loses, you lose a life.")
-    print("• If there is a split pot, you don't lose a life or gain any score.")
-    print("• If your hand wins, your score increases by one.")
-    print(f"• To choose a hand, type a number between 1 and {hand_amount}.")
-    print()
-    print("--- Scoreboard ---")
-    print("Lives: " + str(lives))  # these are integers to begin, cannot concatenate ints
-    print("Score: " + str(score))
-
-    print()
-
-    i = 1
-    while i <= hand_amount:
-        print(f"Hand{i}", end="")
-        if i < hand_amount:  # Don't print this for the last hand
-            print("    ", end="")
-        else:
-            print()  # Acts as a new line after final hand printed
-        i += 1
-
-    i = 1
-    index = 0
-    while i <= hand_amount:
-        print(hands_array[index] + hands_array[index + 1] + "|" +
-              hands_array[index + 2] + hands_array[index + 3], end="")
-        if i < hand_amount:
-            print("    ", end="")
-        else:
-            print()
-        index += 4
-        i += 1
-
-
-def print_ftr(ftr):
-    """Prints the flop, turn and river."""
-    print("Dealer is getting ready...")
-    print()
-
-    time.sleep(2)
-    print(ftr[0] + ftr[1] + " " + ftr[2] + ftr[3] + " " + ftr[4] + ftr[5] + " ", end="")
-    time.sleep(2)
-    print(ftr[6] + ftr[7] + " ", end="")
-    time.sleep(2)
-    print(ftr[8] + ftr[9])
-    time.sleep(2)
-
-
-def print_winner(winner, hand_choice, score, lives, strengths):
-    """Prints the winner or split winners based of values within the winner array."""
-    winning_hands, hands_won = get_winning_hands(winner)
-    highest_strength_val = max(strengths)
-    winning_reason = engine.print_winning_strength(highest_strength_val)
-
-    if hands_won == 1:
-        print("The Winner is Hand", winning_hands[0], "with a", winning_reason + ".")
-        if hand_choice in winning_hands:
-            print("Congratulations, you chose the correct hand!")
-            score += 1
-        else:
-            print("Unfortunately, you did not choose the correct hand.")
-            lives -= 1
-    else:  # hands_won >= 2
-        print("There was a Split Pot between Hands: ", end="")
-        for hand in winning_hands:
-            print(f"{hand} ", end="")
-        print("with a", winning_reason + ".")
-
-        if hand_choice in winning_hands:
-            print("You chose one of these hands. No change occurs.")
-        else:
-            print("You did not choose one of these hands.")
-            lives -= 1
-
-    return score, lives
-
-
-def get_winning_hands(winner):
-    """Calculates the winning hands array."""
-    # winner is an array with values containing either 1 or 0.
-    # If winner[i] = 1, then hand i + 1 is a winner.
-    i = 0
-    hands_won = 0
-    winning_hands = []
-
-    while i < len(winner):
-        if winner[i] == 1:
-            hands_won += 1
-            winning_hands.append(i + 1)  # i + 1 is the HAND that was chosen. Not index.
-        i += 1
-
-    return winning_hands, hands_won
+    return winner
 
 
 if __name__ == '__main__':
