@@ -237,9 +237,7 @@ def straight(hand, ftr, return_highest=False):
     strength = 1
 
     # Read card values from hand and board into the hand_numbered array and sort it
-    hand_numbered = []
-    hand_and_board(hand, ftr, hand_numbered)
-    sorted_array = sorted(hand_numbered)
+    sorted_array = hand_and_board(hand, ftr)
 
     straight = 1  # Technically the first card is the start of the straight
     highest_val = 5  # Lowest possible top straight value is a 5 (A - 5)
@@ -249,12 +247,15 @@ def straight(hand, ftr, return_highest=False):
             highest_val = sorted_array[y + 1]
         elif sorted_array[y] != sorted_array[y + 1]:
             straight = 1  # The straight was broken if it gets to here, so reset it
+            if strength != 5:  # Reset highest value if we haven't found a straight yet
+                highest_val = 5
         if straight >= 5:  # We found a straight!
             strength = 5  # Straight
         y += 1
 
     if strength == 1:  # We haven't found a straight yet
         strength = straight_ace_low(sorted_array)
+        highest_val = 5  # The highest value possible at this point is 5.
 
     if return_highest:
         return highest_val
@@ -284,8 +285,9 @@ def straight_ace_low(sorted_array):
     return strength
 
 
-def hand_and_board(hand, ftr, hand_numbered):
-    """Sub function for straight, combines hand and board into one array."""
+def hand_and_board(hand, ftr):
+    """Converts hand and board into numeric values (T to A), and returns sorted array."""
+    hand_numbered = []
 
     # Convert face cards into numbers if needed
     combined_array = hand + ftr
@@ -305,6 +307,8 @@ def hand_and_board(hand, ftr, hand_numbered):
             hand_numbered.append(int(combined_array[x], base=10))
         x += 2
 
+    return sorted(hand_numbered)
+
 
 def flush(hand, ftr):
     """Determine if the strength of the hand passed in is a flush."""
@@ -314,7 +318,7 @@ def flush(hand, ftr):
     suit = flush_suit(hand, ftr)
 
     # Now to check if any suit has >= 5 cards on board/hand
-    if suit[0] >= 5 or suit[1] >= 5 or suit[2] >= 5 or suit[3] >= 5:
+    if suit['♦'] >= 5 or suit['♥'] >= 5 or suit['♠'] >= 5 or suit['♣'] >= 5:
         strength = 6  # Flush
 
     return strength
@@ -323,39 +327,23 @@ def flush(hand, ftr):
 def flush_suit(hand, ftr):
     """Sub function for flush."""
     combined_array = hand + ftr
-    suit_arr = [0, 0, 0, 0]
-    # Suit 1 -> Diamonds
-    # Suit 2 -> Hearts
-    # Suit 3 -> Spades
-    # Suit 4 -> Clubs
+    suit_arr = {'♦': 0, '♥': 0, '♠': 0, '♣': 0}
 
-    x = 1
-    while x < len(combined_array):
-        if combined_array[x] == '♦':
-            suit_arr[0] += 1
-        elif combined_array[x] == '♥':
-            suit_arr[1] += 1
-        elif combined_array[x] == '♠':
-            suit_arr[2] += 1
-        elif combined_array[x] == '♣':
-            suit_arr[3] += 1
-        x += 2
+    for i in range(1, len(combined_array), 2):
+        suit_arr[combined_array[i]] += 1
 
     return suit_arr
 
 
 def flush_suit_value(suit_arr):
     """Extract the flush suit value from suit_arr."""
-    if suit_arr[0] >= 5:
-        flush_suit_var = '♦'
-    elif suit_arr[1] >= 5:
-        flush_suit_var = '♥'
-    elif suit_arr[2] >= 5:
-        flush_suit_var = '♠'
-    else:
-        flush_suit_var = '♣'
-
-    return flush_suit_var
+    if suit_arr['♦'] >= 5:
+        return '♦'
+    elif suit_arr['♥'] >= 5:
+        return '♥'
+    elif suit_arr['♠'] >= 5:
+        return '♠'
+    return '♣'
 
 
 def straight_flush(hand, ftr):
@@ -364,10 +352,8 @@ def straight_flush(hand, ftr):
 
     # Check if the straight and flush are relating to the same 5 cards
     if straight(hand, ftr) == 5 and flush(hand, ftr) == 6:
-        sorted_array = []
-        hand_and_board(hand, ftr, sorted_array)
         sorted_suits = sort_suits(hand, ftr)
-        sorted_array = sorted(sorted_array)
+        sorted_array = hand_and_board(hand, ftr)
 
         # Important -> To know the suit of the flush
         suit_arr = flush_suit(hand, ftr)
@@ -500,9 +486,7 @@ def check_suits(sorted_array, sorted_suits):
 def sort_suits(hand, ftr):
     """Returns sorted suit array corresponding to the sorted_hand array"""
     suits_sorted = []
-    sorted_array = []
-    hand_and_board(hand, ftr, sorted_array)
-    sorted_array = sorted(sorted_array)
+    sorted_array = hand_and_board(hand, ftr)
     combined = hand + ftr
 
     # First - change the court cards, 10 and ace values in the combined array
@@ -622,13 +606,8 @@ def compare_strengths(hand1, hand2, ftr, strength):
     """Function for comparing two hands of the same strength."""
     winner = 0
 
-    sorted_hand1 = []
-    hand_and_board(hand1, ftr, sorted_hand1)
-    sorted_hand1 = sorted(sorted_hand1)
-
-    sorted_hand2 = []
-    hand_and_board(hand2, ftr, sorted_hand2)
-    sorted_hand2 = sorted(sorted_hand2)
+    sorted_hand1 = hand_and_board(hand1, ftr)
+    sorted_hand2 = hand_and_board(hand2, ftr)
 
     if strength == 1:  # High Card
         winner = compare_strength_one(sorted_hand1, sorted_hand2)
@@ -831,11 +810,13 @@ def compare_strength_six(hand1, hand2, ftr):
 
 def get_top_flush_values(hand, ftr, suit_of_flush):
     """Return the top flush values of a hand/ftr combination."""
-    combined = hand + ftr
+    suits = sort_suits(hand, ftr)
+    values = hand_and_board(hand, ftr)
     top_flush_suit_values = []
-    for i in range(0, len(combined), 2):
-        if combined[i + 1] == suit_of_flush:
-            top_flush_suit_values.append(combined[i])
+
+    for i in range(len(values)):
+        if suits[i] == suit_of_flush:
+            top_flush_suit_values.append(values[i])
 
     return (sorted(top_flush_suit_values))[::-1]  # Return a reverse sorted array
 

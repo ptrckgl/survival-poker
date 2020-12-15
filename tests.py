@@ -69,15 +69,55 @@ def test_split_pair():
 # --- Strength 3 Tests: Two Pair ---
 
 
+def test_won_two_pair():
+    """Testing a won two pair hand."""
+    hand_amount = 3
+    hands_array = ['3', '♣', '4', '♥', '6', '♦', '7', '♠', '8', '♠', '9', '♠']
+    ftr = ['Q', '♦', '8', '♣', '9', '♦', '4', '♦', '3', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [3]
+
+
+def test_split_two_pair():
+    """Testing a split two pair on the whole board."""
+    hand_amount = 3
+    hands_array = ['4', '♦', '6', '♥', 'K', '♥', 'Q', '♦', 'J', '♠', 'T', '♠']
+    ftr = ['A', '♣', '9', '♥', '5', '♣', '5', '♥', '9', '♣']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 2, 3]
+
+
+def test_won_two_pair_using_kicker():
+    """Testing a won two pair using a kicker."""
+    hand_amount = 3
+    hands_array = ['4', '♦', '6', '♥', 'K', '♥', 'Q', '♦', 'J', '♠', 'T', '♠']
+    ftr = ['A', '♣', 'A', '♥', '5', '♣', '5', '♥', '9', '♣']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [2]
+
+
 # --- Strength 4 Tests: Three Of A Kind ---
 
 
 def test_three_of_a_kind():
-    """Testing Three Of a Kind."""
+    """Testing Three Of a Kind win."""
     hand_amount = 3
     hands_array = ['A', '♦', 'A', '♥', 'K', '♦', 'K', '♥', 'Q', '♦', 'Q', '♥']
     ftr = ['A', '♣', '3', '♣', '5', '♠', '7', '♣', '9', '♣']
     assert main.testing_function(hand_amount, hands_array, ftr) == [1]
+
+
+def test_three_of_a_kind_win_kicker():
+    """Testing a three of a kind win from the two kickers."""
+    hand_amount = 3
+    hands_array = ['9', '♦', 'K', '♥', 'K', '♦', '8', '♥', 'Q', '♦', '6', '♥']
+    ftr = ['A', '♣', 'A', '♦', '5', '♠', '7', '♣', 'A', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1]
+
+
+def test_three_of_a_kind_split_pot():
+    """Testing a split against two hands for three of a kind."""
+    hand_amount = 3
+    hands_array = ['9', '♦', 'K', '♥', 'Q', '♠', '8', '♥', 'Q', '♥', '6', '♥']
+    ftr = ['Q', '♣', 'Q', '♦', '5', '♠', 'T', '♣', 'A', '♥']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [2, 3]
 
 
 # --- Strength 5 Tests: Straight ---
@@ -91,6 +131,13 @@ def test_split_straight():
     assert main.testing_function(hand_amount, hands_array, ftr) == [1, 3]
 
 
+def test_straight_ten_ace():
+    hand_amount = 3
+    hands_array = ['J', '♣', 'Q', '♣', 'T', '♠', '5', '♦', '3', '♠', '4', '♦']
+    ftr = ['T', '♦', 'K', '♦', '4', '♥', 'A', '♦', '6', '♠']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1]
+
+
 def test_ace_low_straight():
     """Testing Ace Low Straight."""
     hand_amount = 3
@@ -99,15 +146,47 @@ def test_ace_low_straight():
     assert main.testing_function(hand_amount, hands_array, ftr) == [1]
 
 
+def test_ace_low_straight_on_board():
+    """Testing ace low straight on the board - full split pot."""
+    hand_amount = 4
+    hands_array = ['7', '♣', '8', '♣', '9', '♠', 'T', '♦', 'J', '♠', 'Q', '♦', 'A', '♥', 'A', '♠']
+    ftr = ['A', '♦', '2', '♦', '3', '♥', '4', '♠', '5', '♠']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 2, 3, 4]
+
+
+def test_ace_low_straight_on_board_two_sixes():
+    """Testing ace low straight on the board - but two hands have a six."""
+    hand_amount = 4
+    hands_array = ['6', '♣', '8', '♣', '9', '♠', 'T', '♦', 'J', '♠', 'Q', '♦', 'A', '♥', '6', '♠']
+    ftr = ['A', '♦', '2', '♦', '3', '♥', '4', '♠', '5', '♠']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 4]
+
+
 # --- Strength 6 Tests: Flush ---
 
 
-def test_straight_flush():
-    """Testing a straight flush."""
+def test_flush_single_winner():
+    """Testing an ace high flush winner."""
     hand_amount = 3
-    hands_array = ['4', '♣', '2', '♣', '9', '♦', '5', '♦', '2', '♠', 'J', '♦']
-    ftr = ['6', '♦', '7', '♥', '7', '♦', 'K', '♦', '8', '♦']
-    assert main.testing_function(hand_amount, hands_array, ftr) == [2]
+    hands_array = ['J', '♦', 'A', '♦', '4', '♠', '5', '♦', 'K', '♦', '7', '♦']
+    ftr = ['T', '♦', 'Q', '♦', '4', '♥', '4', '♦', '6', '♠']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1]
+
+
+def test_flush_winner_fifth_card():
+    """Testing a flush win because of the 5th flush card."""
+    hand_amount = 3
+    hands_array = ['2', '♦', '6', '♦', '2', '♥', '5', '♥', '3', '♥', '7', '♦']
+    ftr = ['K', '♦', 'Q', '♦', '4', '♥', '8', '♦', '9', '♦']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [3]
+
+
+def test_flush_split_pot():
+    """Testing a split pot for a flush - against a straight also."""
+    hand_amount = 3
+    hands_array = ['T', '♥', 'J', '♥', '2', '♥', '5', '♥', '3', '♥', '7', '♥']
+    ftr = ['K', '♦', 'Q', '♦', '7', '♦', '8', '♦', '9', '♦']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [1, 2, 3]
 
 
 # --- Strength 7 Tests: Full House ---
@@ -117,6 +196,14 @@ def test_straight_flush():
 
 
 # --- Strength 9 Tests: Straight Flush ---
+
+
+def test_straight_flush():
+    """Testing a straight flush."""
+    hand_amount = 3
+    hands_array = ['4', '♣', '2', '♣', '9', '♦', '5', '♦', '2', '♠', 'J', '♦']
+    ftr = ['6', '♦', '7', '♥', '7', '♦', 'K', '♦', '8', '♦']
+    assert main.testing_function(hand_amount, hands_array, ftr) == [2]
 
 
 # --- Strength 10 Tests: Royal Flush ---
