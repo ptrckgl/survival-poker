@@ -432,28 +432,35 @@ def royal_flush(sorted_array, sorted_suits, flush_suit_var):
     if sorted_array[0] == 10:  # Lowest card is a 10 - Must be a royal flush
         strength = 10
     elif sorted_array[1] == 10:  # Second lowest card in hand is a 10
-        x = 1
-        y = 1
-        rF = 1
-        while y < (x + 4):
-            if sorted_array[y] + 1 == sorted_array[y + 1] and sorted_suits[y] == flush_suit_var:
-                rF += 1
-            elif sorted_array[y] == sorted_array[y + 1]:
-                # In this case, we can just swap the two values and it will work
-                sorted_array[y], sorted_array[y + 1] = sorted_array[y + 1], sorted_array[y]
-                x += 1
-                if x == 3:
-                    x = 2
-            y += 1
-        if rF >= 5:
-            strength = 10  # Royal Flush
+        if sorted_array[0] != 9:  # The lowest card cannot be part of the straight flush
+            strength = 10
+        else:
+            strength = check_royal_flush(sorted_array[1:], sorted_suits[1:], flush_suit_var)
     elif sorted_array[2] == 10:  # If a royal flush, last 5 cards must be it
         # --- Uglisest if statement ever, but it works :) ---
         if (sorted_array[3] == 11 and sorted_array[4] == 12 and sorted_array[5] == 13 and
-                sorted_array[6] == 14 and sorted_suits[2] == flush_suit and
-                sorted_suits[3] == flush_suit and sorted_suits[4] == flush_suit and
-                sorted_suits[5] == flush_suit and sorted_suits[6] == flush_suit):
+                sorted_array[6] == 14 and sorted_suits[2] == flush_suit_var and
+                sorted_suits[3] == flush_suit_var and sorted_suits[4] == flush_suit_var and
+                sorted_suits[5] == flush_suit_var and sorted_suits[6] == flush_suit_var):
             strength = 10  # Royal Flush
+
+    return strength
+
+
+def check_royal_flush(sorted_array, sorted_suits, flush_suit_var):
+    """Helper function for royal flush function above - checking royal flush with six cards."""
+    strength = 9
+    royal = 1
+    count = 0
+
+    for i in range(len(sorted_array)):
+        if sorted_array[i] + 1 == sorted_array[i + i] and sorted_suits[i] == flush_suit_var:
+            royal += 1
+        elif sorted_array[i] == sorted_array[i + 1]:  # Swap values!
+            sorted_array[i], sorted_array[i + 1] = sorted_array[i + 1], sorted_array[i]
+
+    if royal >= 5:
+        strength = 10
 
     return strength
 

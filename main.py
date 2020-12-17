@@ -43,7 +43,8 @@ def testing_function(hand_amount, hands_array, ftr):
     """The testing function called when the tests.py file is ran with pytest."""
     strengths = get_strengths(hands_array, ftr, hand_amount)
     winner = determine_winner(hands_array, ftr, strengths)
-    return get_winning_hands(winner)
+    winning_hands = get_winning_hands(winner)
+    return (winning_hands, strengths)
 
 
 def generate_cards():
