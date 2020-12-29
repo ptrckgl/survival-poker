@@ -32,11 +32,11 @@ def pairs(hand, ftr):
     """Determine the strength value of a hand by checking pair combinations."""
 
     strength = 1  # Minimum strength - high card
-    common = [1, 1]  # Max pairs on board is 2
-    card_common = []
+    board_common = [1, 1]  # Max pairs on board is 2
+    card_common = []  # If there is a pair(s) or better on board, will contain those value(s)
 
     # Get info about amount of unique_pairs on board, and what card values those pairs are
-    unique_pairs = find_pairs_on_board(ftr, common, card_common)
+    unique_pairs = find_pairs_on_board(ftr, board_common, card_common)
 
     if hand[0] == hand[2]:  # Pocket Paired Hand
         pocket_pair = 2  # 2 cards of same value so far
@@ -48,28 +48,26 @@ def pairs(hand, ftr):
                 pocket_pair += 1
             x += 2
 
-        strength = get_strength_pocket_pair(common, unique_pairs, pocket_pair)
+        strength = get_strength_pocket_pair(board_common, unique_pairs, pocket_pair)
 
     else:  # Non Pocket Paired Hand
-        common_cards_1 = 1  # For first card in hand
-        common_cards_2 = 1  # For second card in hand
+        common_cards = [1, 1]  # Index 0 for first card in hand, index 1 for second card
 
         # Here - find any common cards with hand and the board
         x = 0
         while x <= 8:
             if hand[0] == ftr[x]:
-                common_cards_1 += 1
+                common_cards[0] += 1
             elif hand[2] == ftr[x]:
-                common_cards_2 += 1
+                common_cards[1] += 1
             x += 2
 
-        strength = get_strength_not_pocket_pair(hand, common, card_common, unique_pairs,
-                                                common_cards_1, common_cards_2)
+        strength = get_strength_not_pocket_pair(hand, board_common, card_common, common_cards)
 
     return strength
 
 
-def find_pairs_on_board(ftr, common, card_common):
+def find_pairs_on_board(ftr, board_common, card_common):
     """Find pairs on the board and return the amount of unique pairs."""
 
     used_ftr = []
@@ -92,7 +90,7 @@ def find_pairs_on_board(ftr, common, card_common):
             i = count * 2 + 2
             while i <= 8:  # '8' representing the max face_value index in ftr array (5 cards)
                 if ftr[count * 2] == ftr[i]:
-                    common[unique_pairs] += 1
+                    board_common[unique_pairs] += 1
                     common_index = i  # Want to know what index the card value is found at
                     found_pair = True
                 i += 2
@@ -107,29 +105,27 @@ def find_pairs_on_board(ftr, common, card_common):
     return unique_pairs
 
 
-def get_strength_pocket_pair(common, unique_pairs, pocket_pair):
+def get_strength_pocket_pair(board_common, unique_pairs, pocket_pair):
     """Find and return the strength of a hand if the hand itself is a pocket pair."""
 
     if pocket_pair == 2:  # No common cards on the board with the hand - pair at worst
         if unique_pairs == 1:
-            if common[0] == 3:
+            if board_common[0] == 3:
                 strength = 7  # Full House
-            elif common[0] == 4:
+            elif board_common[0] == 4:
                 strength = 8  # 4 OAK
             else:
                 strength = 3  # Two Pair
         elif unique_pairs == 2:
-            if common[0] == 3 or common[1] == 3:
+            if board_common[0] == 3 or board_common[1] == 3:
                 strength = 7  # Full House
-            elif common[0] == 4 or common[1] == 4:
-                strength = 8  # 4 OAK
             else:
                 strength = 3  # Two Pair
         else:  # The only pair on board is the hand itself
             strength = 2
     elif pocket_pair == 3:  # One common card on the board with hand - 3OAK at worst
         if unique_pairs == 1:
-            if common[0] == 4:
+            if board_common[0] == 4:
                 strength = 8  # 4OAK
             else:
                 strength = 7  # Full House
@@ -143,93 +139,50 @@ def get_strength_pocket_pair(common, unique_pairs, pocket_pair):
     return strength
 
 
-def get_strength_not_pocket_pair(hand, common, card_common, unique_pairs, common_cards_1,
-                                 common_cards_2):
-    """Find and return the strength of a non-pocketed pair."""
+def get_strength_not_pocket_pair(hand, board_common, card_common, common_cards):
+    """Find and return the strength of a non-pocketed pair relating to pair based strengths."""
+    # The methodolgy - if there is a common card between the hand and board, remove the 'amount'
+    # from the board_common list. Then get the top two values from the combined lists of
+    # board_common and common_cards, then return the strength value that list combination.
 
-    if common_cards_1 >= 2 and common_cards_2 >= 2:
-        # At least a two pair - using both cards in hand
-        strength = 3  # Two Pair at worst
-        if unique_pairs == 1:
-            # Impossible for there to be a quads or unique_pairs == 2 in this situation
-            if common[0] == 3:
-                strength = 7  # Full House
-
-        if common_cards_1 >= 3 or common_cards_2 >= 3:
-            strength = 7  # Full House
-            if common_cards_1 == 4 or common_cards_2 == 4:
-                strength = 8  # 4OAK
-
-    elif common_cards_1 >= 2:  # There is at least 1 common card on the board with hand[0]
-        strength = 2  # At least a pair
-        if unique_pairs == 1:
-            if card_common[0] == hand[0]:  # The pair on the board is same value as hand[0]
-                strength = 4  # 3OAK
+    # If there is a pair (or better) on board and it is of same value of a card within
+    # the users hand, remove the 'count' of that card from the board_common list, as it has
+    # already been counted in the common_cards list.
+    for i in range(len(card_common)):
+        if hand[0] == card_common[i] or hand[2] == card_common[i]:
+            if board_common[0] > 1:
+                board_common[0] = 1
             else:
-                strength = 3  # Two Pair At Least
-                if common[0] == 3:
-                    strength = 7  # Full House
-                elif common[0] == 4:
-                    strength = 8  # 4OAK
-        # No possible way for unique_pairs to be 2 and be anything better then 2 pair
-        elif unique_pairs == 2:
-            if common[0] == hand[0] or common[1] == hand[0]:
-                strength = 7  # Full House
-            else:
-                strength = 3  # Two pair
+                board_common[1] = 1
 
-        # It is known that the other card has no commonalities on the board
-        # So only test for this specific card
-        if common_cards_1 >= 3:
-            strength = 4  # 3OAK
-            if unique_pairs == 1:
-                strength = 4  # 3OAK - 2 values from common_cards_1 is the unique_pair on the board
-            elif unique_pairs == 2:
-                if card_common[0] == hand[0] or card_common[1] == hand[0]:
-                    strength = 7  # Full House -> one unique_pair is common to hand ,one isnt
-            if common_cards_1 == 4:
-                strength = 8  # 4OAK
+    strengths = sorted(board_common + common_cards)[-2:]
+    return get_strength_common(strengths)
 
-    elif common_cards_2 >= 2:  # At least 1 common card on the board with card2 in hand
-        strength = 2  # At least a pair
-        if unique_pairs == 1:
-            if card_common[0] == hand[2]:
-                strength = 4  # 3OAK
-            else:
-                strength = 3  # Two Pair At Least
-                if common[0] == 3:
-                    strength = 7  # Full House
-                elif common[0] == 4:
-                    strength = 8  # 4OAK
-        elif unique_pairs == 2:
-            if card_common[0] == hand[2] or card_common[1] == hand[2]:
-                strength = 7  # Full House
-            else:
-                strength = 3  # Two pair
-        if common_cards_2 >= 3:
-            strength = 4  # 3OAK
-            if unique_pairs == 1:
-                strength = 4  # 3OAK - 2 values from common_cards_1 is the unique_pair on the board
-            elif unique_pairs == 2:
-                if card_common[0] == hand[2] or card_common[1] == hand[2]:
-                    strength = 7  # Full House - one unique_pair is common to hand ,one isnt
-            if common_cards_2 == 4:
-                strength = 8  # 4OAK
-    else:  # There are no pairs anywhere on the board with cards in hand
-        strength = 1  # Just a high card - It should already be 1 to begin with
-        # Last, we have to check if the board is paired in any way...
-        if unique_pairs == 1:
-            strength = 2  # Pair
-            if common[0] >= 3:
-                strength = 4  # 3OAK
-                if common[0] == 4:
-                    strength = 8  # 4OAK
-        elif unique_pairs == 2:
-            strength = 3  # Two Pair
-            if common[0] == 3 or common[1] == 3:
-                strength = 7  # Full House (Board will be a full house!)
 
-    return strength
+def get_strength_common(common_list):
+    """Extract the strength of the hand based off values within a 'common' list of shape [?, ?]"""
+    max_common = max(common_list)
+    min_common = min(common_list)
+
+    # Same common_card valued hands
+    if max_common == 1 and min_common == 1:  # High Card & High Card
+        return 1  # High Card
+    elif max_common == 2 and min_common == 2:  # Pair & Pair
+        return 3  # Two Pair
+    elif max_common == 3 and min_common == 3:  # Three Of A Kind & Three Of A Kind
+        return 7  # Full House
+
+    # Different common_card valued hands
+    if max_common == 2 and min_common == 1:  # Pair & High Card
+        return 2  # Pair
+    elif max_common == 3 and min_common == 1:  # Three Of A Kind & High Card
+        return 4  # Three Of A Kind
+    elif max_common == 3 and min_common == 2:  # Three Of A Kind & Pair
+        return 7  # Full House
+
+    # Either value of common_list being 4
+    if max_common == 4 or min_common == 4:  # Four Of A Kind & Whatever
+        return 8  # Four Of A Kind
 
 
 def straight(hand, ftr, return_highest=False):
@@ -359,67 +312,75 @@ def straight_flush(hand, ftr):
         suit_arr = flush_suit(hand, ftr)
         flush_suit_var = flush_suit_value(suit_arr)
 
-        sF = 1  # Straight Flush variable
         temp_array = sorted_array[:]
         temp_array_suits = sorted_suits[:]
-        y = 0
-        z = 0
-        while y < 6 - z:
-            if (sorted_array[y] + 1 == sorted_array[y + 1] and sorted_suits[y] == flush_suit_var
-                    and sorted_suits[y + 1] == flush_suit_var):  # Straight Flush condition
-                sF += 1
-            elif sorted_suits[y] != sorted_suits[y + 1]:  # Remove the card not in the flush suit
-                # Remove the un-needed suit and value
-                if sorted_suits[y] != flush_suit_var:
-                    suit_len = len(sorted_suits)
-                    arr_len = len(sorted_array)
-                    sorted_suits = sorted_suits[0:y] + sorted_suits[(y + 1):suit_len]
-                    sorted_array = sorted_array[0:y] + sorted_array[(y + 1):arr_len]
-                else:
-                    suit_len = len(sorted_suits)
-                    arr_len = len(sorted_array)
-                    sorted_suits = sorted_suits[0:(y + 1)] + sorted_suits[(y + 2):suit_len]
-                    sorted_array = sorted_array[0:(y + 1)] + sorted_array[(y + 2):arr_len]
-                z += 1  # Want to loop 1 time less
-                y -= 1
-            y += 1
 
-        if sF >= 5:  # We found a Straight Flush!
-            strength = 9  # Straight Flush
+        strength = calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var)
 
         # Change the arrays back to normal
         sorted_array = temp_array[:]
         sorted_suits = temp_array_suits[:]
 
         if strength == 1:  # Check for ace low straight flush if not found yet
-            strength = straight_flush_ace_low(sorted_array, sorted_suits)
+            strength = straight_flush_ace_low(sorted_array, sorted_suits, flush_suit_var)
 
         if strength == 9:  # Check for a royal flush if a straight flush exists
+            sorted_array = temp_array[:]
+            sorted_suits = temp_array_suits[:]
             strength = royal_flush(sorted_array, sorted_suits, flush_suit_var)
 
     return strength
 
 
-def straight_flush_ace_low(sorted_array, sorted_suits):
+def calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var):
+    """Does the calculation of the straight flush given the sorted_array and sorted_suits."""
     strength = 1
+    sF = 1  # Straight flush variable
+    y = 0
+    z = 0
+    initial_array_length_var = len(sorted_array) - 1
 
-    # There could potentially be a straight flush with an ace at the beginning
-    if sorted_array[4] == 14 or sorted_array[5] == 14 or sorted_array[6] == 14:
-        if check_suits(sorted_array, sorted_suits):
-            x = 0
-            y = 0
-            sF = 2  # We already know there's an ace and 2.
-            while y < (x + 3):
-                if (sorted_array[y] + 1 == sorted_array[y + 1] and
-                        sorted_suits[y] == sorted_suits[y + 1]):
-                    sF += 1
-                elif sorted_array[y] == sorted_array[y + 1]:
-                    x += 1
-                    if x == 3:
-                        x = 2
-                y += 1
-            if sF >= 5:
-                strength = 9  # Straight Flush
+    while y < initial_array_length_var - z:
+        if (sorted_array[y] + 1 == sorted_array[y + 1] and sorted_suits[y] == flush_suit_var
+                and sorted_suits[y + 1] == flush_suit_var):  # Straight Flush condition
+            sF += 1
+        elif sorted_suits[y] != sorted_suits[y + 1]:  # Remove the card not in the flush suit
+            # Remove the un-needed suit and value
+            if sorted_suits[y] != flush_suit_var:
+                suit_len = len(sorted_suits)
+                arr_len = len(sorted_array)
+                sorted_suits = sorted_suits[0:y] + sorted_suits[(y + 1):suit_len]
+                sorted_array = sorted_array[0:y] + sorted_array[(y + 1):arr_len]
+            else:
+                suit_len = len(sorted_suits)
+                arr_len = len(sorted_array)
+                sorted_suits = sorted_suits[0:(y + 1)] + sorted_suits[(y + 2):suit_len]
+                sorted_array = sorted_array[0:(y + 1)] + sorted_array[(y + 2):arr_len]
+            z += 1  # Want to loop 1 time less
+            y -= 1
+        y += 1
+
+    if sF >= 5:  # We found a Straight Flush!
+        strength = 9  # Straight Flush
+
+    return strength
+
+
+def straight_flush_ace_low(sorted_array, sorted_suits, flush_suit_var):
+    strength = 1
+    print(sorted_array)
+    print(sorted_suits)
+
+    # Change the 14s (ace values) to a 1
+    for i in range(len(sorted_array)):
+        if sorted_array[i] == 14:
+            sorted_array.remove(14)
+            sorted_array.insert(0, 1)
+            suit = sorted_suits[i]
+            del sorted_suits[i]
+            sorted_suits.insert(0, suit)
+
+    strength = calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var)
 
     return strength
 
@@ -435,7 +396,9 @@ def royal_flush(sorted_array, sorted_suits, flush_suit_var):
         if sorted_array[0] != 9:  # The lowest card cannot be part of the straight flush
             strength = 10
         else:
-            strength = check_royal_flush(sorted_array[1:], sorted_suits[1:], flush_suit_var)
+            result = calculate_straight_flush(sorted_array[1:], sorted_suits[1:], flush_suit_var)
+            if result == 9:
+                strength = 10
     elif sorted_array[2] == 10:  # If a royal flush, last 5 cards must be it
         # --- Uglisest if statement ever, but it works :) ---
         if (sorted_array[3] == 11 and sorted_array[4] == 12 and sorted_array[5] == 13 and
@@ -443,24 +406,6 @@ def royal_flush(sorted_array, sorted_suits, flush_suit_var):
                 sorted_suits[3] == flush_suit_var and sorted_suits[4] == flush_suit_var and
                 sorted_suits[5] == flush_suit_var and sorted_suits[6] == flush_suit_var):
             strength = 10  # Royal Flush
-
-    return strength
-
-
-def check_royal_flush(sorted_array, sorted_suits, flush_suit_var):
-    """Helper function for royal flush function above - checking royal flush with six cards."""
-    strength = 9
-    royal = 1
-    count = 0
-
-    for i in range(len(sorted_array)):
-        if sorted_array[i] + 1 == sorted_array[i + i] and sorted_suits[i] == flush_suit_var:
-            royal += 1
-        elif sorted_array[i] == sorted_array[i + 1]:  # Swap values!
-            sorted_array[i], sorted_array[i + 1] = sorted_array[i + 1], sorted_array[i]
-
-    if royal >= 5:
-        strength = 10
 
     return strength
 

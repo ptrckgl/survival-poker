@@ -5,6 +5,7 @@ import pytest
 # python3 -m pytest tests.py
 # coverage run -m pytest tests.py
 # coverage report
+# coverage html -> To open the report, type 'explorer.exe engine_py.html' (will open locally)
 
 # ♦ ♥ ♠ ♣
 
@@ -103,7 +104,7 @@ def test_won_two_pair():
 def test_split_two_pair():
     """Testing a split two pair on the whole board."""
     hand_amount = 3
-    hands_array = ['4', '♦', '6', '♥', 'K', '♥', 'Q', '♦', 'J', '♠', 'T', '♠']
+    hands_array = ['4', '♦', '4', '♥', 'K', '♥', 'Q', '♦', 'J', '♠', 'T', '♠']
     ftr = ['A', '♣', '9', '♥', '5', '♣', '5', '♥', '9', '♣']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1, 2, 3]
@@ -212,11 +213,11 @@ def test_ace_low_straight_on_board_two_sixes():
 def test_flush_single_winner():
     """Testing an ace high flush winner."""
     hand_amount = 3
-    hands_array = ['J', '♦', 'A', '♦', '4', '♠', '5', '♦', 'K', '♦', '7', '♦']
+    hands_array = ['J', '♦', 'A', '♦', '3', '♠', '3', '♦', 'K', '♦', '7', '♦']
     ftr = ['T', '♦', 'Q', '♦', '4', '♥', '4', '♦', '6', '♠']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1]
-    assert result[1] == [6, 4, 6]
+    assert result[1] == [6, 3, 6]
 
 
 def test_flush_winner_fifth_card():
@@ -233,10 +234,21 @@ def test_flush_split_pot():
     """Testing a split pot for a flush - against a straight also."""
     hand_amount = 3
     hands_array = ['T', '♥', 'J', '♥', '2', '♥', '5', '♥', '3', '♥', '7', '♥']
-    ftr = ['K', '♦', 'Q', '♦', '7', '♦', '8', '♦', '9', '♦']
+    ftr = ['K', '♠', 'Q', '♠', '7', '♠', '8', '♠', '9', '♠']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1, 2, 3]
     assert result[1] == [6, 6, 6]
+
+
+def test_flush_against_other_strengths():
+    """Testing a flush win against other strengths."""
+    hand_amount = 5
+    hands_array = ['Q', '♥', '2', '♠', '5', '♠', '3', '♦', '6', '♣', 'A', '♣', 'T', '♣', 'T', '♦',
+                   '7', '♥', '8', '♥']
+    ftr = ['T', '♥', 'A', '♥', '6', '♥', '4', '♥', '2', '♦']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [1]
+    assert result[1] == [6, 5, 3, 4, 6]
 
 
 # --- Strength 7 Tests: Full House ---
@@ -250,6 +262,16 @@ def test_full_house_win():
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1]
     assert result[1] == [7, 3, 7]
+
+
+def test_full_house_win_2():
+    """Testing another full house win."""
+    hand_amount = 3
+    hands_array = ['6', '♥', '6', '♦', '2', '♥', '2', '♠', '3', '♠', '5', '♥']
+    ftr = ['K', '♦', 'A', '♠', '7', '♦', '7', '♠', '7', '♣']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [1]
+    assert result[1] == [7, 7, 4]
 
 
 def test_full_house_split():
@@ -295,14 +317,44 @@ def test_four_of_a_kind_winner():
     assert result[1] == [8, 7, 7]
 
 
+def test_four_of_a_kind_2():
+    """Testing a four of a kind, where three of the cards are on the board."""
+    hand_amount = 3
+    hands_array = ['2', '♥', '7', '♣', '6', '♣', '8', '♠', 'T', '♠', 'J', '♥']
+    ftr = ['2', '♦', '7', '♦', 'Q', '♦', '2', '♣', '2', '♠']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [1]
+    assert result[1] == [8, 4, 4]
+
+
+def test_four_of_a_kind_stronger():
+    """Testing one four of a kind beating another."""
+    hand_amount = 4
+    hands_array = ['8', '♥', '8', '♣', '7', '♣', '7', '♠', 'K', '♠', 'K', '♥', '3', '♣', '4', '♣']
+    ftr = ['8', '♦', '7', '♦', 'K', '♦', 'K', '♣', '8', '♠']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [3]
+    assert result[1] == [8, 7, 8, 3]
+
+
 def test_four_of_a_kind_split():
     """Testing a split pot, four of a kind."""
     hand_amount = 3
-    hands_array = ['A', '♥', '5', '♣', '4', '♣', '3', '♠', 'A', '♠', 'A', '♣']
+    hands_array = ['A', '♥', '5', '♣', '9', '♣', '9', '♠', 'A', '♠', 'A', '♣']
     ftr = ['8', '♦', '8', '♦', '8', '♦', '9', '♦', '8', '♠']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1, 3]
     assert result[1] == [8, 8, 8]
+
+
+def test_four_of_a_kind_three_on_board():
+    """Testing a four of a kind, where three of a kind is on the board."""
+    hand_amount = 2
+    hands_array = ['A', '♥', '5', '♣', '9', '♣', '9', '♦']
+    ftr = ['A', '♦', 'A', '♠', '3', '♦', '4', '♦', 'A', '♣']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [1]
+    assert result[1] == [8, 7]
 
 
 # --- Strength 9 Tests: Straight Flush ---
@@ -338,6 +390,17 @@ def test_straight_flush_overcard_winner():
     assert result[1] == [5, 9, 9]
 
 
+def test_straight_flush_ace_low():
+    """Testing an ace low straight flush."""
+    hand_amount = 3
+    hands_array = ['4', '♣', '2', '♣', 'K', '♦', '5', '♦', 'A', '♠', 'A', '♥']
+    ftr = ['A', '♣', '3', '♣', '5', '♣', 'A', '♦', '2', '♦']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    print(result)
+    assert result[0] == [1]
+    assert result[1] == [9, 3, 8]
+
+
 # --- Strength 10 Tests: Royal Flush ---
 
 
@@ -354,8 +417,18 @@ def test_royal_flush_against_straight_flush():
 def test_royal_flush_on_board():
     """Testing a royal flush on the board - split pot - will probably never happen!"""
     hand_amount = 3
-    hands_array = ['4', '♣', '2', '♣', 'K', '♦', 'A', '♦', '8', '♦', '9', '♦']
+    hands_array = ['4', '♣', '2', '♣', 'K', '♦', 'A', '♦', 'Q', '♦', '9', '♦']
     ftr = ['T', '♣', 'J', '♣', 'Q', '♣', 'K', '♣', 'A', '♣']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1, 2, 3]
     assert result[1] == [10, 10, 10]
+
+
+def test_royal_flush_coverage():
+    """A general test for royal flush to gain coverage."""
+    hand_amount = 3
+    hands_array = ['4', '♣', '2', '♣', '6', '♦', 'Q', '♣', '5', '♦', '9', '♦']
+    ftr = ['T', '♣', 'J', '♣', 'Q', '♦', 'K', '♣', 'A', '♣']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [2]
+    assert result[1] == [6, 10, 5]
