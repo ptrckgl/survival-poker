@@ -88,6 +88,16 @@ def test_split_pair():
     assert result[1] == [2, 2]
 
 
+def test_pair_pocket_higher():
+    """Testing one pocket pair vs others."""
+    hand_amount = 4
+    hands_array = ['4', '♣', '4', '♥', 'J', '♦', 'J', '♠', '6', '♦', '6', '♠', 'K', '♦', 'K', '♠']
+    ftr = ['3', '♦', '7', '♣', '8', '♦', 'Q', '♦', 'A', '♥']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [4]
+    assert result[1] == [2, 2, 2, 2]
+
+
 # --- Strength 3 Tests: Two Pair ---
 
 
@@ -121,17 +131,28 @@ def test_won_two_pair_using_kicker():
     assert result[1] == [3, 3, 3]
 
 
+def test_two_pair_on_board():
+    """Testing when a two pair is on the board, alongside some pocket pair hands."""
+    hand_amount = 6
+    hands_array = ['6', '♦', '6', '♥', '6', '♠', '6', '♣', '3', '♠', '3', '♣', 'Q', '♠', 'Q', '♣',
+                   'A', '♠', 'A', '♣', '9', '♠', 'J', '♣']
+    ftr = ['K', '♣', 'K', '♥', '5', '♣', '5', '♥', '9', '♣']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [5]
+    assert result[1] == [3, 3, 3, 3, 3, 3]
+
+
 # --- Strength 4 Tests: Three Of A Kind ---
 
 
 def test_three_of_a_kind():
     """Testing Three Of a Kind win."""
-    hand_amount = 3
-    hands_array = ['A', '♦', 'A', '♥', 'K', '♦', 'K', '♥', 'Q', '♦', 'Q', '♥']
-    ftr = ['A', '♣', '3', '♣', '5', '♠', '7', '♣', '9', '♣']
+    hand_amount = 4
+    hands_array = ['A', '♦', 'A', '♥', 'Q', '♦', 'Q', '♥', 'K', '♦', 'K', '♥', 'A', '♠', 'Q', '♠']
+    ftr = ['A', '♣', '3', '♣', 'K', '♠', '7', '♣', 'Q', '♣']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1]
-    assert result[1] == [4, 2, 2]
+    assert result[1] == [4, 4, 4, 3]
 
 
 def test_three_of_a_kind_win_kicker():
@@ -277,10 +298,10 @@ def test_full_house_win_2():
 def test_full_house_split():
     """Testing a full house split pot amongst two hands."""
     hand_amount = 3
-    hands_array = ['Q', '♥', '4', '♦', 'Q', '♣', 'K', '♠', '3', '♠', '3', '♥']
+    hands_array = ['Q', '♥', '4', '♦', '3', '♠', '3', '♥', 'Q', '♣', 'K', '♠']
     ftr = ['Q', '♦', 'Q', '♠', '3', '♦', '4', '♥', '4', '♣']
     result = main.testing_function(hand_amount, hands_array, ftr)
-    assert result[0] == [1, 2]
+    assert result[0] == [1, 3]
     assert result[1] == [7, 7, 7]
 
 
@@ -337,6 +358,16 @@ def test_four_of_a_kind_stronger():
     assert result[1] == [8, 7, 8, 3]
 
 
+def test_four_of_a_kind_ace_two():
+    """Testing a four of a kind against twos and aces."""
+    hand_amount = 3
+    hands_array = ['A', '♥', 'A', '♣', '2', '♣', '2', '♦', '4', '♣', '5', '♦']
+    ftr = ['A', '♦', 'A', '♠', '3', '♦', '2', '♥', '2', '♠']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [1]
+    assert result[1] == [8, 8, 5]
+
+
 def test_four_of_a_kind_split():
     """Testing a split pot, four of a kind."""
     hand_amount = 3
@@ -373,7 +404,7 @@ def test_straight_flush_win():
 def test_straight_flush_split():
     """Testing a split between all hands for a straight flush."""
     hand_amount = 3
-    hands_array = ['4', '♣', '2', '♣', '8', '♦', '5', '♦', '2', '♠', '4', '♦']
+    hands_array = ['4', '♣', '2', '♣', '8', '♦', '5', '♦', 'A', '♠', '4', '♦']
     ftr = ['K', '♦', 'Q', '♦', 'J', '♦', '9', '♦', 'T', '♦']
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [1, 2, 3]
@@ -388,6 +419,16 @@ def test_straight_flush_overcard_winner():
     result = main.testing_function(hand_amount, hands_array, ftr)
     assert result[0] == [2]
     assert result[1] == [5, 9, 9]
+
+
+def test_straight_flush_on_board_one_overcard():
+    """Testing a straight flush win where one has a better straight flush."""
+    hand_amount = 3
+    hands_array = ['4', '♣', '2', '♣', '7', '♦', '6', '♦', '2', '♠', 'K', '♦']
+    ftr = ['8', '♦', 'Q', '♦', 'J', '♦', '9', '♦', 'T', '♦']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [3]
+    assert result[1] == [9, 9, 9]
 
 
 def test_straight_flush_ace_low():

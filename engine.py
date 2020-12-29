@@ -410,31 +410,6 @@ def royal_flush(sorted_array, sorted_suits, flush_suit_var):
     return strength
 
 
-def check_suits(sorted_array, sorted_suits):
-    """Sub function for straight/royal flush."""
-    # This function is basically testing if the ace and two are of the same suit
-    # And also makes sure that there is an ace and two in the common cards
-    valid = False
-    x = 0
-    if sorted_array[4] == 14:  # There's three aces in common
-        y = 0
-    elif sorted_array[5] == 14:  # There's two aces in common
-        y = 1
-    else:
-        y = 2  # There has to be at least one ace to get to this function
-
-    while y < 3:
-        while x < 3:
-            if sorted_array[x] == 2:  # There must be at least 1 two in the 7 cards.
-                if sorted_suits[x] == sorted_suits[y + 4]:
-                    valid = True
-            x += 1
-        y += 1
-        x = 0
-
-    return valid
-
-
 def sort_suits(hand, ftr):
     """Returns sorted suit array corresponding to the sorted_hand array"""
     suits_sorted = []
