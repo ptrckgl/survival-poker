@@ -203,6 +203,8 @@ def straight(hand, ftr, return_highest=False):
             straight = 1  # The straight was broken if it gets to here, so reset it
             if strength != 5:  # Reset highest value if we haven't found a straight yet
                 highest_val = 5
+            else:
+                break  # To make sure 'highest_val' isn't incorrectly assigned
         if straight >= 5:  # We found a straight!
             strength = 5  # Straight
         y += 1
@@ -370,6 +372,14 @@ def calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var):
 def straight_flush_ace_low(sorted_array, sorted_suits, flush_suit_var):
     strength = 1
 
+    change_ace_values(sorted_array, sorted_suits)
+    strength = calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var)
+
+    return strength
+
+
+def change_ace_values(sorted_array, sorted_suits):
+    """Change the ace values of '14' in a sorted array to '1'"""
     # Change the 14s (ace values) to a 1
     for i in range(len(sorted_array)):
         if sorted_array[i] == 14:
@@ -378,10 +388,6 @@ def straight_flush_ace_low(sorted_array, sorted_suits, flush_suit_var):
             suit = sorted_suits[i]
             del sorted_suits[i]
             sorted_suits.insert(0, suit)
-
-    strength = calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var)
-
-    return strength
 
 
 def royal_flush(sorted_array, sorted_suits, flush_suit_var):
@@ -817,9 +823,15 @@ def compare_strength_nine(hand1, hand2, ftr, sorted_hand1, sorted_hand2):
     suit_arr = flush_suit(hand1, ftr)
     fs = flush_suit_value(suit_arr)  # flush suit
 
+    if straight_flush_ace_low(sorted_hand1, sorted_suits1, fs) == 9:
+        # Change the ace values of '14' to '1' inside of the sorted hand
+        change_ace_values(sorted_hand1, sorted_suits1)
     hs1 = straight(hand1, ftr, True)  # Highest straight value 1
-    hs2 = straight(hand2, ftr, True)  # Highest straight value 2
     highest_sf_value1 = ensure_highest_sf_value(sorted_hand1, sorted_suits1, hs1, fs)
+
+    if straight_flush_ace_low(sorted_hand2, sorted_suits2, fs) == 9:
+        change_ace_values(sorted_hand2, sorted_suits2)
+    hs2 = straight(hand2, ftr, True)  # Highest straight value 2
     highest_sf_value2 = ensure_highest_sf_value(sorted_hand2, sorted_suits2, hs2, fs)
 
     if highest_sf_value1 > highest_sf_value2:

@@ -437,9 +437,18 @@ def test_straight_flush_ace_low():
     hands_array = ['4', '♣', '2', '♣', 'K', '♦', '5', '♦', 'A', '♠', 'A', '♥']
     ftr = ['A', '♣', '3', '♣', '5', '♣', 'A', '♦', '2', '♦']
     result = main.testing_function(hand_amount, hands_array, ftr)
-    print(result)
     assert result[0] == [1]
     assert result[1] == [9, 3, 8]
+
+
+def test_straight_flush_ace_low_comparison():
+    """Testing two straight flushes where one is an ace low."""
+    hand_amount = 2
+    hands_array = ['A', '♦', '9', '♦', '6', '♦', 'Q', '♦']
+    ftr = ['2', '♦', '3', '♦', '4', '♦', '5', '♦', 'K', '♦']
+    result = main.testing_function(hand_amount, hands_array, ftr)
+    assert result[0] == [2]
+    assert result[1] == [9, 9]
 
 
 # --- Strength 10 Tests: Royal Flush ---
