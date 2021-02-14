@@ -107,6 +107,7 @@ def find_pairs_on_board(ftr, board_common, card_common):
 
 def get_strength_pocket_pair(board_common, unique_pairs, pocket_pair):
     """Find and return the strength of a hand if the hand itself is a pocket pair."""
+    strength = 2  # pair at worst
 
     if pocket_pair == 2:  # No common cards on the board with the hand - pair at worst
         if unique_pairs == 1:

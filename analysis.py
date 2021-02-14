@@ -37,8 +37,8 @@ import engine
 import main
 import random
 
-HANDS = 3
-SIMULATIONS = 10000
+HANDS = 4
+SIMULATIONS = 100000
 INDEXES = {
     'A': 0,
     'K': 1,
@@ -60,6 +60,7 @@ CARDS = main.generate_cards()
 def analyse():
     """The main program to analyse hands (not named main because it's imported)."""
     identity_list = create_identity_list()
+    frequency = create_identity_list()
 
     for sim in range(SIMULATIONS):
         # Generate the hands and board
@@ -77,14 +78,16 @@ def analyse():
 
         # Add 1 to corresponding identity value if the hand won
         for hand in range(HANDS):
+            row_col = get_row_col_index(hand_identities[hand])
             if winner[hand] == 1:  # The corresponding hand won
-                row_col = get_row_col_index(hand_identities[hand])
                 identity_list[row_col[0]][row_col[1]] += 1.0/winning_hands
+            frequency[row_col[0]][row_col[1]] += 1
 
-    # TODO: Turn the identity list into percentages out of total simulations run
+    # Turn the identity list into percentages using frequency list
+    percentage_list = convert_to_percentages(identity_list, frequency)
 
     # Nicely print the results
-    print_results(identity_list)
+    print_results(percentage_list)
 
 
 def create_identity_list():
@@ -146,10 +149,60 @@ def get_row_col_index(index):
     return row_col
 
 
+def convert_to_percentages(identity_list, frequency):
+    """Converts hand wins to percentages using the frequency list."""
+    percentage_list = create_identity_list()
+
+    for row in range(len(INDEXES)):
+        for col in range(len(INDEXES)):
+            percentage_list[row][col] = (identity_list[row][col] / frequency[row][col]) * 100
+
+    return percentage_list
+
+
 def print_results(identity_list):
     """Prints the results in a nice manner"""
-    for row in identity_list:
-        print(row)
+    inversed_indexes = {v: k for k, v in INDEXES.items()}
+    highest_val = identity_list[0][0]
+    highest_hand = "A A"
+    lowest_val = highest_val
+    lowest_hand = "A A"
+    running_total = 0.0
+
+    print(f"This table contains win percentages from comparing {HANDS} hands")
+    print(f"against each other in {SIMULATIONS} simulations\n")
+    print("     A     K     Q     J     T     9     8     7     6     5     4     3     2\n")
+    for row in range(len(INDEXES)):
+        print(f"{inversed_indexes[row]}  ", end="")
+        for col in range(len(INDEXES)):
+            print(f"{format(identity_list[row][col], '.2f')}", end=" ")  # To two decimal places
+
+            # Update highest/lowest values
+            if identity_list[row][col] > highest_val:
+                highest_val = identity_list[row][col]
+                highest_hand = f"{inversed_indexes[row]} {inversed_indexes[col]}"
+                if row != col:
+                    suited = True if col > row else False
+                    highest_hand += ' suited' if suited else ' off'
+
+            if identity_list[row][col] < lowest_val:
+                lowest_val = identity_list[row][col]
+                lowest_hand = f"{inversed_indexes[row]} {inversed_indexes[col]}"
+                if row != col:
+                    suited = True if col > row else False
+                    lowest_hand += ' suited' if suited else ' off'
+
+            # Update running total
+            running_total += identity_list[row][col]
+
+        print("\n")
+
+    print(f"The hand with the highest win percentage was {highest_hand} ", end="")
+    print(f"with {format(highest_val, '.2f')}% of hands won")
+    print(f"The hand with the lowest win percentage was {lowest_hand} ", end="")
+    print(f"with {format(lowest_val, '.2f')}% of hands won")
+    print(f"The average win percentage overall was ", end="")
+    print(f"{format(running_total / len(INDEXES) ** 2, '.2f')}%")
 
 
 if __name__ == '__main__':
