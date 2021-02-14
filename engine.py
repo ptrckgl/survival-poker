@@ -368,8 +368,6 @@ def calculate_straight_flush(sorted_array, sorted_suits, flush_suit_var):
 
 def straight_flush_ace_low(sorted_array, sorted_suits, flush_suit_var):
     strength = 1
-    print(sorted_array)
-    print(sorted_suits)
 
     # Change the 14s (ace values) to a 1
     for i in range(len(sorted_array)):

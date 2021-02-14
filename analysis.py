@@ -38,7 +38,7 @@ import main
 import random
 
 HANDS = 3
-SIMULATIONS = 1000000
+SIMULATIONS = 10000
 INDEXES = {
     'A': 0,
     'K': 1,
@@ -57,22 +57,34 @@ INDEXES = {
 CARDS = main.generate_cards()
 
 
-def main():
-    """The main program to analyse hands."""
+def analyse():
+    """The main program to analyse hands (not named main because it's imported)."""
     identity_list = create_identity_list()
 
     for sim in range(SIMULATIONS):
         # Generate the hands and board
         cards_used = []
-        hands_array = main.generate_hands(cards_used, cards, hand_amount)
-        ftr = main.generate_ftr(cards_used, cards)
+        hands_array = main.generate_hands(cards_used, CARDS, HANDS)
+        ftr = main.generate_ftr(cards_used, CARDS)
 
-        # Find strengths of each hand and determine winner list
-        strengths = main.get_strengths(hands_array, ftr, hand_amount)
-        winner = determine_winner(hands_array, ftr, strengths)
+        # Find strengths of each hand and determine winner list, and amount of winning hands
+        strengths = main.get_strengths(hands_array, ftr, HANDS)
+        winner = main.determine_winner(hands_array, ftr, strengths)
+        winning_hands = len(main.get_winning_hands(winner))
 
         # Get the 'identities' of every hand
+        hand_identities = get_identities(hands_array)
 
+        # Add 1 to corresponding identity value if the hand won
+        for hand in range(HANDS):
+            if winner[hand] == 1:  # The corresponding hand won
+                row_col = get_row_col_index(hand_identities[hand])
+                identity_list[row_col[0]][row_col[1]] += 1.0/winning_hands
+
+    # TODO: Turn the identity list into percentages out of total simulations run
+
+    # Nicely print the results
+    print_results(identity_list)
 
 
 def create_identity_list():
@@ -82,7 +94,7 @@ def create_identity_list():
     # Note, just doing it like this incase some cards want to be removed from INDEXES dictionary
     # Add the rows (and cols) into the identity array
     for i in range(len(INDEXES)):
-        identity_list.append([0 for j in range(len(INDEXES))])
+        identity_list.append([0.0 for j in range(len(INDEXES))])
 
     return identity_list
 
@@ -95,7 +107,50 @@ def get_identities(hands_array):
     suited which will be index 12, it will go down to the next row where index 13 will be
     AK off suit.
     """
+    identity_list = []
+
+    for i in range(HANDS):
+        # First - check if the hand is suited
+        suited = True if hands_array[(i * 4) + 1] == hands_array[(i * 4) + 3] else False
+
+        # Next, extract face values from the hand and get their index
+        value1 = hands_array[(i * 4)]
+        value2 = hands_array[(i * 4) + 2]
+        index1 = INDEXES[str(value1)]
+        index2 = INDEXES[str(value2)]
+
+        if suited:  # We want to go into the upper triangle of the 2d list
+            if index1 < index2:  # index1 is a higher face value
+                overall_index = index1 * len(INDEXES) + index2
+            else:  # index1 can never be equal to index2 if suited hand
+                overall_index = index2 * len(INDEXES) + index1
+        else:  # We want to go into the lower triangle of the 2d list
+            if index1 > index2:  # index1 is the lower face value
+                overall_index = index1 * len(INDEXES) + index2
+            else:
+                overall_index = index2 * len(INDEXES) + index1
+
+        identity_list.append(overall_index)
+
+    return identity_list
+
+
+def get_row_col_index(index):
+    """Based off the total index of the hand, get it's corresponding row and column."""
+    row_col = [0, 0]
+    while index >= len(INDEXES):
+        index -= len(INDEXES)
+        row_col[0] += 1
+    row_col[1] = index
+
+    return row_col
+
+
+def print_results(identity_list):
+    """Prints the results in a nice manner"""
+    for row in identity_list:
+        print(row)
 
 
 if __name__ == '__main__':
-    main()
+    analyse()
