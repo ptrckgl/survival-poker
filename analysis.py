@@ -55,8 +55,8 @@ T 52  53  54  55  56  57  58  59  60  61  62  63  64
 2 156 157 158 159 160 161 162 163 164 165 166 167 168
 '''
 
-HANDS = 5  # MAX 9 HANDS
-SIMULATIONS = 5000000
+HANDS = 2  # MAX 9 HANDS
+SIMULATIONS = 100000
 INDEXES = {
     'A': 0,
     'K': 1,
@@ -173,7 +173,10 @@ def convert_to_percentages(identity_list, frequency):
 
     for row in range(len(INDEXES)):
         for col in range(len(INDEXES)):
-            percentage_list[row][col] = (identity_list[row][col] / frequency[row][col]) * 100
+            if frequency[row][col] == 0:
+                percentage_list[row][col] = -1
+            else:
+                percentage_list[row][col] = (identity_list[row][col] / frequency[row][col]) * 100
 
     return percentage_list
 
